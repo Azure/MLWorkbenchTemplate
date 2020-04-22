@@ -1,64 +1,52 @@
----
-page_type: sample
-languages:
-- csharp
-products:
-- dotnet
-description: "Add 150 character max description"
-urlFragment: "update-this-to-unique-url-stub"
----
+# Machine Learning Workbench Template
 
-# Official Microsoft Sample
+<br>This template will deploy the following architecture:
+<br>![Architecture Diagram](https://dev.azure.com/msftnso/f1fa0963-64be-4bae-9b1c-3dbd0312684a/_apis/git/repositories/1c72131b-c9e4-42df-9bee-7d2bb0fde3af/items?path=%2FMLWorkbench%20Template%20Architecture.jpg&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0)
 
-<!-- 
-Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
+**Running the MLWorkbench Template**
 
-Guidance on onboarding samples to docs.microsoft.com/samples: https://review.docs.microsoft.com/help/onboard/admin/samples/process/onboarding?branch=master
+**Parameters**
 
-Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
--->
+In the azuredeploy.parameters.json you will need to set the following: (\*
+denotes required parameters)
 
-Give a short description for your sample here. What does it do and why is it important?
+| Prefix\*                               | A short prefix that will be added to the name of all resources                                                                                                                                                                                                                                         |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| VirtualNetworkResourceGroupName \*     | The Resource Group where the Virtual Network exists                                                                                                                                                                                                                                                    |
+| VirtualNetworkName \*                  | Name of the subnet to deploy into                                                                                                                                                                                                                                                                      |
+| KvObjectID \*                          | The ObjectID of the user, group, or service principle that will have access to Key Vault                                                                                                                                                                                                               |
+| vmSize                                 | By default, the template chooses Standard_D1 – if this size isn’t available in the location you are deploying to, you should pass a different size here (like Standard_D1_v2) you can get available machine sizes via a powershell commandlet (Get-AzVMSize –Location \<insert location ie: eastus2\>) |
+| osType                                 | Default value is ubuntu, if you provide this, allowed options are: ubuntu centOs windows – these are the different marketplace skus for DataScience vms                                                                                                                                                |
+| localAdminUserSecretValue              | Script will ask for this if not provided in parameter file (it is more secure to leave it out and provide it in PowerShell when prompted) this will be the local admin username that will be set on the VM (this value will be stored and referenced from KeyVault when the template executes)         |
+| LocalAdminPasswordSecretValue          | Script will ask for this if not provided in parameter file (it is more secure to leave it out and provide it in PowerShell when prompted) this will be the local admin password that will be set on the VM (this value will be stored and referenced from KeyVault when the template executes)         |
 
-## Contents
+**Considerations**
 
-Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
+This template deploys to an existing VNET and subnet. You can set these valuesin the parameters file. Note that the subnet needs to have Service Endpoints configured for KeyVault. The template currently only provides for the VNet/Subnet to be in the same subscription as the ML environment you are creating.
 
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `src`             | Sample source code.                        |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | The license for the sample.                |
+You will need to have a storage account (in the subscription you are creating the ML environment in) for artifacts to be uploaded to. The template will create the storage account and container if they do not exist. Note that the storage account name needs to be globally unique.
 
-## Prerequisites
+To Login to your azure subscription in local PowerShell (not necessary in cloud shell, and assumes latest az powershell module is installed locally): `Login-AzAccount`
 
-Outline the required components and tools that a user might need to have on their machine in order to run the sample. This can be anything from frameworks, SDKs, OS versions or IDE releases.
+**Ensure you are working in the appropriate subscription**
 
-## Setup
+If you have access to multiple subscriptions – this will deploy to the default subscription that the PowerShell session authenticates to. Check the currently selected subscription by using: `Get-AzContext`
 
-Explain how to prepare the sample once the user clones or downloads the repository. The section should outline every step necessary to install dependencies and set up any settings (for example, API keys and output folders).
+This will list the current default selected subscription To change this to a different subscription try the following: 
+`\$context = Get-AzSubscription –SubscriptionId \<paste id of subscription to switch to\>` 
+`Set-AzContext \$context`
 
-## Running the sample
+**Accept the DSVM legal terms before running:**
 
-Outline step-by-step instructions to execute the sample and see its output. Include steps for executing the sample from the IDE, starting specific services in the Azure portal or anything related to the overall launch of the code.
+This template deploys the Azure Marketplace image of a Data Science Virtual Machine. To successfully deploy, you must first accept the terms of use. You can read the terms [here](https://storelegalterms.blob.core.windows.net/legalterms/3E5ED_legalterms_MICROSOFT%253a2DADS%253a24LINUX%253a2DDATA%253a2DSCIEN). 
+You can accept the terms with the following PowerShell command: 
+<br/>`Get-AzMarketplaceTerms -Publisher "microsoft-ads" -Product "linux-data-science-vm-ubuntu" -Name "linuxdsvmubuntu" \| Set-AzMarketplaceTerms -Accept`
 
-## Key concepts
+**Deploy**
 
-Provide users with more context on the tools and services used in the sample. Explain some of the code that is being used and how services interact with each other.
+All files need to exist in the directory you deploy from. The following command will deploy the template:
+<br/>`.\\Deploy-AzureResourceGroup.ps1 -ResourceGroupLocation "\<region\>” -UploadArtifacts -ResourceGroupName "\<defaults to MLWorkbenchTemplate if not provided\>" -StorageAccountName "\<name\>" -StorageContainerName "\<name\>"`
 
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+Other optional Parameters:
+<br/>`-ValidateOnly` - will only validate that the template is valid with the provided parameters (will prevent the script from actually deploying any artifacts)
+<br/>`-DSCSourceFolder` - this is used for configuration management, which is not currently used in this template

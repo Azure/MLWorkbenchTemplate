@@ -1,0 +1,146 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "dataFactoryName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "dataStorageAccountName": {
+      "type": "string"
+    },
+    "storageAccountType": {
+      "type": "string"
+    },
+    "storageEndptBypass": {
+      "type": "string"
+    },
+    "subnetId": {
+      "type": "string"
+    },
+    "adfRoleIdForStorageAccount": {
+      "type": "string"
+    },
+    "appInsightsName": {
+      "type": "string"
+    },
+    "workspaceName": {
+      "type": "string"
+    },
+    "keyVaultId": {
+      "type": "string"
+    },
+    "MLWSSku": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "dataFactoryName": "[parameters('dataFactoryName')]",
+    "dataFactoryId": "[resourceId('Microsoft.DataFactory/factories', variables('dataFactoryName'))]",
+    "location": "[parameters('location')]",
+    "dataStorageAccountName": "[parameters('dataStorageAccountName')]",
+    "storageAccountType": "[parameters('storageAccountType')]",
+    "storageEndptBypass": "[parameters('storageEndptBypass')]",
+    "subnetId": "[parameters('subnetId')]",
+    "adfRoleIdForStorageAccount": "[parameters('adfRoleIdForStorageAccount')]",
+    "appInsightsName": "[parameters('appInsightsName')]",
+    "workspaceName": "[parameters('workspaceName')]",
+    "keyVaultId": "[parameters('keyVaultId')]",
+    "MLWSSku": "[parameters('MLWSSku')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-06-01",
+      "name": "[variables('dataFactoryName')]",
+      "location": "[variables('location')]",
+      "type": "Microsoft.DataFactory/factories",
+      "tags": {
+        "displayName": "DataFactory"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-04-01",
+      "name": "[variables('dataStorageAccountName')]",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "[variables('storageAccountType')]"
+      },
+      "tags": {
+        "displayName": "DataStorageAccount"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "encryption": {
+          "services": {
+            "blob": {
+              "enabled": true
+            },
+            "file": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage",
+          "networkAcls": {
+            "bypass": "[variables('storageEndptBypass')]",
+            "virtualNetworkRules": [
+              {
+                "id": "[variables('subnetId')]",
+                "action": "Allow"
+              }
+            ],
+            "defaultAction": "Deny"
+          }
+        },
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2018-05-01-preview",
+      "name": "[variables('appInsightsName')]",
+      "location": "[if(or(equals(variables('location'),'eastus2'),equals(variables('location'),'westcentralus')),'southcentralus',variables('location'))]",
+      "kind": "web",
+      "tags": {
+        "displayName": "AppInsights-MLWS"
+      },
+      "properties": {
+        "Application_Type": "web"
+      }
+    },
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces",
+      "apiVersion": "2019-11-01",
+      "name": "[variables('workspaceName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('dataStorageAccountName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
+      ],
+      "identity": {
+        "type": "systemAssigned"
+      },
+      "sku": {
+        "tier": "[variables('MLWSSku')]",
+        "name": "[variables('MLWSSku')]"
+      },
+      "tags": {
+        "displayName": "MLWorkspace-DataScience"
+      },
+      "properties": {
+        "friendlyName": "[variables('workspaceName')]",
+        "keyVault": "[variables('keyVaultId')]",
+        "applicationInsights": "[resourceId('Microsoft.Insights/components',variables('appInsightsName'))]",
+        "storageAccount": "[resourceId('Microsoft.Storage/storageAccounts/',variables('dataStorageAccountName'))]"
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

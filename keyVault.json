@@ -1,0 +1,143 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "kvObjectId": {
+      "type": "string"
+    },
+    "subnetId": {
+      "type": "string"
+    },
+    "localAdminUserSecretName": {
+      "type": "string"
+    },
+    "localAdminPasswordSecretName": {
+      "type": "string"
+    },
+    "localAdminUserSecretValue": {
+      "type": "securestring"
+    },
+    "localAdminPasswordSecretValue": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+    "keyVaultName": "[parameters('keyVaultName')]",
+    "location": "[parameters('location')]",
+    "tenantId": "[subscription().tenantId]",
+    "keyVaultEndptBypass": "AzureServices",
+    "subnetId": "[parameters('subnetId')]",
+    "kvEnabledForTemplateDeployment": true,
+    "kvSecretPermissions": [
+      "get",
+      "list",
+      "set",
+      "delete",
+      "backup",
+      "restore",
+      "recover",
+      "purge"
+    ],
+    "kvKeysPermissions": [
+      "encrypt",
+      "decrypt",
+      "wrapKey",
+      "unwrapKey",
+      "sign",
+      "verify",
+      "get",
+      "list",
+      "create",
+      "update",
+      "import",
+      "delete",
+      "backup",
+      "restore",
+      "recover",
+      "purge"
+    ],
+    "localAdminUserSecretName": "[parameters('localAdminUserSecretName')]",
+    "localAdminPasswordSecretName": "[parameters('localAdminPasswordSecretName')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2018-02-14",
+      "name": "[variables('keyVaultName')]",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "datasciencekeyvault"
+      },
+      "properties": {
+        "tenantId": "[variables('tenantId')]",
+        "sku": {
+          "name": "standard",
+          "family": "A"
+        },
+        "networkAcls": {
+          "bypass": "[variables('keyVaultEndptBypass')]",
+          "virtualNetworkRules": [
+            {
+              "id": "[variables('subnetId')]",
+              "action": "Allow"
+            }
+          ],
+          "defaultAction": "Deny"
+        },
+        "enabledForTemplateDeployment": "[variables('kvEnabledForTemplateDeployment')]",
+        "accessPolicies": [
+          {
+            "objectId": "[parameters('kvObjectId')]",
+            "tenantId": "[variables('tenantId')]",
+            "permissions": {
+              "keys": "[variables('kvKeysPermissions')]",
+              "secrets": "[variables('kvSecretPermissions')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "name": "[concat(variables('keyVaultName'), '/', variables('localAdminUserSecretName'))]",
+      "apiVersion": "2018-02-14",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "localAdminUserSecret"
+      },
+      "dependsOn": [
+        "[variables('keyVaultName')]"
+      ],
+      "properties": {
+        "value": "[parameters('localAdminUserSecretValue')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "name": "[concat(variables('keyVaultName'), '/', variables('localAdminPasswordSecretName'))]",
+      "apiVersion": "2018-02-14",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "localAdminPasswordSecret"
+      },
+      "dependsOn": [
+        "[variables('keyVaultName')]"
+      ],
+      "properties": {
+        "value": "[parameters('localAdminPasswordSecretValue')]"
+      }
+    }
+  ],
+  "outputs": {
+    "keyVaultId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+    }
+  }
+}

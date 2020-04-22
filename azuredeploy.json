@@ -1,0 +1,274 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "type": "string"
+    },
+    "osType": {
+      "type": "string",
+      "defaultValue": "ubuntu",
+      "allowedValues": [
+        "ubuntu",
+        "centOs",
+        "windows"
+      ]
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D1",
+      "allowedValues": [
+        "Standard_D1",
+        "Standard_D2",
+        "Standard_D3",
+        "Standard_D4",
+        "Standard_D11",
+        "Standard_D12",
+        "Standard_D13",
+        "Standard_D14",
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D5_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_D2_v3",
+        "Standard_D4_v3",
+        "Standard_D8_v3",
+        "Standard_D16_v3",
+        "Standard_D32_v3",
+        "Standard_D48_v3",
+        "Standard_D64_v3",
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_D32s_v3",
+        "Standard_D48s_v3",
+        "Standard_D64s_v3",
+        "Standard_D2a_v4",
+        "Standard_D4a_v4",
+        "Standard_D8a_v4",
+        "Standard_D16a_v4",
+        "Standard_D32a_v4",
+        "Standard_D2as_v4",
+        "Standard_D4as_v4",
+        "Standard_D8as_v4",
+        "Standard_D16as_v4",
+        "Standard_D32as_v4",
+        "Standard_F1",
+        "Standard_F2",
+        "Standard_F4",
+        "Standard_F8",
+        "Standard_F16",
+        "Standard_NC6",
+        "Standard_NC12",
+        "Standard_NC24",
+        "Standard_NC24r",
+        "Standard_NV6",
+        "Standard_NV12",
+        "Standard_NV24"
+      ]
+    },
+    "virtualNetworkResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group name for VNET that VM goes into"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of VNET VM goes into"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "What subnet on the above VNET is the VM going into?"
+      }
+    },
+    "_artifactsLocation": {
+      "type": "string"
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring"
+    },
+    "localAdminUserSecretValue": {
+      "type": "securestring"
+    },
+    "localAdminPasswordSecretValue": {
+      "type": "securestring"
+    },
+    "kvObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "object id of user who will be keyvault owner"
+      }
+    }
+  },
+  "variables": {
+    "dataStorageAccountName": "[concat('prefix', uniqueString(resourceGroup().id))]",
+    "subnetId": "[resourceId(parameters('virtualNetworkResourceGroupname'), 'Microsoft.Network/virtualNetworks/subnets',parameters('virtualNetworkName'),parameters('subnetName'))]",
+    "storageAccountType": "Standard_LRS",
+    "location": "[resourceGroup().location]",
+    "appInsightsName": "[concat(parameters('prefix'),'-appInsights')]",
+    "vmName": "[concat(parameters('prefix'),'-DSVM')]",
+    "workspaceName": "[concat(parameters('prefix'),'-MLWS')]",
+    "dataFactoryName": "[concat(parameters('prefix'),uniqueString(resourceGroup().id))]",
+    "keyVaultName": "[concat(parameters('prefix'), uniqueString(resourceGroup().id))]",
+    "MLWSSKU": "basic or enterprise (delete the option you don't want or parameterize, I don't really care!)",
+    "dsvmdeploymenturl": "[concat(parameters('_artifactsLocation'), '/', variables('datasciencevmdeploymentTemplateFileName'), parameters('_artifactsLocationSasToken'))]",
+    "mlservicesdeploymenturl": "[concat(parameters('_artifactsLocation'), '/', variables('mlservicesDeploymentTemplateFileName'), parameters('_artifactsLocationSasToken'))]",
+    "datasciencevmdeploymentTemplateFileName": "vm.json",
+    "kvdeploymenturl": "[concat(parameters('_artifactsLocation'), '/', variables('kvDeploymentTemplateFileName'), parameters('_artifactsLocationSasToken'))]",
+    "kvDeploymentTemplateFileName": "keyVault.json",
+    "mlservicesDeploymentTemplateFileName": "mlservices.json",
+    "kvObjectId": "[parameters('kvObjectId')]",
+    "adfRoleIdForStorageAccount": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+    "storageEndptBypass": "AzureServices",
+    "keyVaultEndptBypass": "AzureServices",
+    "localAdminUserSecretName": "dslocaluser",
+    "localAdminPasswordSecretName": "dslocaluserpass"
+  },
+  "resources": [
+    {
+      "name": "keyvaultdeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2016-09-01",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('kvdeploymenturl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('keyVaultName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "kvObjectId": {
+            "value": "[parameters('kvObjectId')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "localAdminUserSecretName": {
+            "value": "[variables('localAdminUserSecretName')]"
+          },
+          "localAdminPasswordSecretName": {
+            "value": "[variables('localAdminPasswordSecretName')]"
+          },
+          "localAdminUserSecretValue": {
+            "value": "[parameters('localAdminUserSecretValue')]"
+          },
+          "localAdminPasswordSecretValue": {
+            "value": "[parameters('localAdminPasswordSecretValue')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "datasciencevmdeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2016-09-01",
+      "dependsOn": [
+        "keyvaultdeployment"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('dsvmdeploymenturl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('vmName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "osType": {
+            "value": "[parameters('osType')]"
+          },
+          "adminUsername": {
+            "reference": {
+              "keyVault": {
+                "id": "[reference('keyvaultdeployment').outputs.keyVaultId.value]"
+              },
+              "secretName": "[variables('localAdminUserSecretName')]"
+            }
+          },
+          "adminPassword": {
+            "reference": {
+              "keyVault": {
+                "id": "[reference('keyvaultdeployment').outputs.keyVaultId.value]"
+              },
+              "secretName": "[variables('localAdminPasswordSecretName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "mlservicesdeployment",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2016-09-01",
+      "dependsOn": [
+        "keyvaultdeployment"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('mlservicesdeploymenturl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dataFactoryName": {
+            "value": "[variables('dataFactoryName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "dataStorageAccountName": {
+            "value": "[variables('dataStorageAccountName')]"
+          },
+          "storageAccountType": {
+            "value": "[variables('storageAccountType')]"
+          },
+          "storageEndptBypass": {
+            "value": "[variables('storageEndptBypass')]"
+          },
+          "subnetId": {
+            "value": "[variables('subnetId')]"
+          },
+          "adfRoleIdForStorageAccount": {
+            "value": "[variables('adfRoleIdForStorageAccount')]"
+          },
+          "appInsightsName": {
+            "value": "[variables('appInsightsName')]"
+          },
+          "workspaceName": {
+            "value": "[variables('workspaceName')]"
+          },
+          "keyVaultId": {
+            "value": "[reference('keyvaultdeployment').outputs.keyVaultId.value]"
+          },
+          "MLWSSku": {
+            "value": "[variables('MLWSSku')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}

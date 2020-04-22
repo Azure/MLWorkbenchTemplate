@@ -1,0 +1,143 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string"
+    },
+    "vmSize": {
+      "type": "string"
+    },
+    "subnetId": {
+      "type": "string"
+    },
+    "osType": {
+      "type": "string",
+      "defaultValue": "ubuntu",
+      "allowedValues": [
+        "ubuntu",
+        "centOs",
+        "windows"
+      ]
+    },
+    "adminUsername": {
+      "type": "securestring"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+    "nicName": "[concat(parameters('vmName'), '-Nic')]",
+    "nicId": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]",
+    "osType": {
+      "windows": {
+        "marketplacePlan": {
+          "name": "windows2016",
+          "publisher": "microsoft-ads",
+          "product": "windows-data-science-vm"
+        },
+        "imageReference": {
+          "publisher": "microsoft-ads",
+          "offer": "windows-data-science-vm",
+          "sku": "windows2016",
+          "version": "latest"
+        },
+        "natBackendPort": 3389
+      },
+      "ubuntu": {
+        "marketplacePlan": {
+          "name": "linuxdsvmubuntu",
+          "publisher": "microsoft-ads",
+          "product": "linux-data-science-vm-ubuntu"
+        },
+        "imageReference": {
+          "publisher": "microsoft-ads",
+          "offer": "linux-data-science-vm-ubuntu",
+          "sku": "linuxdsvmubuntu",
+          "version": "latest"
+        },
+        "natBackendPort": 3389
+      },
+      "centOs": {
+        "marketplacePlan": {
+          "name": "linuxdsvm",
+          "publisher": "microsoft-ads",
+          "product": "linux-data-science-vm"
+        },
+        "imageReference": {
+          "publisher": "microsoft-ads",
+          "offer": "linux-data-science-vm",
+          "sku": "linuxdsvm",
+          "version": "latest"
+        },
+        "natBackendPort": 3389
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-04-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('subnetId')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2018-04-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('nicName')]"
+      ],
+      "plan": "[variables('osType')[parameters('osType')].marketplacePlan]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('osType')[parameters('osType')].imagereference.publisher]",
+            "offer": "[variables('osType')[parameters('osType')].imagereference.offer]",
+            "sku": "[variables('osType')[parameters('osType')].imagereference.sku]",
+            "version": "[variables('osType')[parameters('osType')].imagereference.version]"
+          },
+          "osDisk": {
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[variables('nicId')]"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}
