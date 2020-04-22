@@ -1,7 +1,7 @@
 # Machine Learning Workbench Template
 
 <br>This template will deploy the following architecture:
-<br>![Architecture Diagram](https://dev.azure.com/msftnso/f1fa0963-64be-4bae-9b1c-3dbd0312684a/_apis/git/repositories/1c72131b-c9e4-42df-9bee-7d2bb0fde3af/items?path=%2FMLWorkbench%20Template%20Architecture.jpg&versionDescriptor%5BversionOptions%5D=0&versionDescriptor%5BversionType%5D=0&versionDescriptor%5Bversion%5D=master&resolveLfs=true&%24format=octetStream&api-version=5.0)
+<br>![Architecture Diagram](https://github.com/Azure/MLWorkbenchTemplate/blob/master/MLWorkbench%20Template%20Architecture.jpg?raw=true)
 
 **Running the MLWorkbench Template**
 
