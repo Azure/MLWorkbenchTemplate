@@ -40,7 +40,7 @@ This will list the current default selected subscription To change this to a dif
 
 This template deploys the Azure Marketplace image of a Data Science Virtual Machine. To successfully deploy, you must first accept the terms of use. You can read the terms [here](https://storelegalterms.blob.core.windows.net/legalterms/3E5ED_legalterms_MICROSOFT%253a2DADS%253a24LINUX%253a2DDATA%253a2DSCIEN). 
 You can accept the terms with the following PowerShell command: 
-<br/>`Get-AzMarketplaceTerms -Publisher "microsoft-ads" -Product "linux-data-science-vm-ubuntu" -Name "linuxdsvmubuntu" \| Set-AzMarketplaceTerms -Accept`
+<br/>`Get-AzMarketplaceTerms -Publisher "microsoft-ads" -Product "linux-data-science-vm-ubuntu" -Name "linuxdsvmubuntu" | Set-AzMarketplaceTerms -Accept`
 
 **Deploy**
 
