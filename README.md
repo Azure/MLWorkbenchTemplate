@@ -33,8 +33,8 @@ To Login to your azure subscription in local PowerShell (not necessary in cloud 
 If you have access to multiple subscriptions – this will deploy to the default subscription that the PowerShell session authenticates to. Check the currently selected subscription by using: `Get-AzContext`
 
 This will list the current default selected subscription To change this to a different subscription try the following: 
-`\$context = Get-AzSubscription –SubscriptionId \<paste id of subscription to switch to\>` 
-`Set-AzContext \$context`
+`$context = Get-AzSubscription –SubscriptionId <paste id of subscription to switch to>` 
+`Set-AzContext $context`
 
 **Accept the DSVM legal terms before running:**
 
@@ -45,7 +45,7 @@ You can accept the terms with the following PowerShell command:
 **Deploy**
 
 All files need to exist in the directory you deploy from. The following command will deploy the template:
-<br/>`.\\Deploy-AzureResourceGroup.ps1 -ResourceGroupLocation "\<region\>” -UploadArtifacts -ResourceGroupName "\<defaults to MLWorkbenchTemplate if not provided\>" -StorageAccountName "\<name\>" -StorageContainerName "\<name\>"`
+<br/>`.\Deploy-AzureResourceGroup.ps1 -ResourceGroupLocation "<region>” -UploadArtifacts -ResourceGroupName "<defaults to MLWorkbenchTemplate if not provided>" -StorageAccountName "<name>" -StorageContainerName "<name>"`
 
 Other optional Parameters:
 <br/>`-ValidateOnly` - will only validate that the template is valid with the provided parameters (will prevent the script from actually deploying any artifacts)
