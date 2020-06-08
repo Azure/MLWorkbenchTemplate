@@ -111,7 +111,7 @@
     }
   },
   "variables": {
-    "dataStorageAccountName": "[concat('prefix', uniqueString(resourceGroup().id))]",
+    "dataStorageAccountName": "[concat(parameters('prefix'), uniqueString(resourceGroup().id))]",
     "subnetId": "[resourceId(parameters('virtualNetworkResourceGroupname'), 'Microsoft.Network/virtualNetworks/subnets',parameters('virtualNetworkName'),parameters('subnetName'))]",
     "storageAccountType": "Standard_LRS",
     "location": "[resourceGroup().location]",
