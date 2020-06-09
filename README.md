@@ -33,7 +33,9 @@ To Login to your azure subscription in local PowerShell (not necessary in cloud 
 If you have access to multiple subscriptions – this will deploy to the default subscription that the PowerShell session authenticates to. Check the currently selected subscription by using: `Get-AzContext`
 
 This will list the current default selected subscription To change this to a different subscription try the following: 
+<br/>
 `$context = Get-AzSubscription –SubscriptionId <paste id of subscription to switch to>` 
+<br/>
 `Set-AzContext $context`
 
 **Accept the DSVM legal terms before running:**
