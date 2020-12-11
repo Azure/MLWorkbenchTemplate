@@ -1,4 +1,5 @@
 # Machine Learning Workbench Template
+<br>This template is a secure and flexible workspace for data scientists. It has a deployment of the ML Studio, but also offers a data science virtual machine for added flexibility to meet all work needs. This template is to be deployed inside an existing Virtual Network and connects PaaS services via service endpoints to keep communications secure.
 
 <br>This template will deploy the following architecture:
 <br>![Architecture Diagram](https://github.com/Azure/MLWorkbenchTemplate/blob/master/MLWorkbench%20Template%20Architecture.jpg?raw=true)
